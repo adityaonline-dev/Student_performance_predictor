@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Prediction History · Student Performance Lab{% endblock %}
+{% block breadcrumb %}Prediction history{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">RECORDS</div><h1>Prediction history</h1><p>Review estimates saved during this local demo.</p></div>
+<form method="POST" action="{{ url_for('delete_history') }}" onsubmit="return confirm('Clear all prediction history? This cannot be undone.');"><button class="secondary-btn danger-btn" type="submit">Clear history</button></form></div>
+<section class="panel table-panel history-table">
+  {% if rows %}
+  <div class="table-scroll"><table><thead><tr><th>ID</th><th>STUDENT</th><th>STUDY HRS</th><th>ATTENDANCE</th><th>PREVIOUS</th><th>ASSIGNMENT</th><th>SLEEP</th><th>PREDICTED SCORE</th><th>PERFORMANCE</th><th>DATE</th></tr></thead><tbody>
+  {% for row in rows %}
+  <tr><td>#{{ row.id }}</td><td><b>{{ row.student_name }}</b></td><td>{{ row.study_hours }}</td><td>{{ row.attendance }}%</td><td>{{ row.previous_score }}</td><td>{{ row.assignment_score }}</td><td>{{ row.sleep_hours }}h</td><td><b>{{ row.predicted_score }}</b></td><td><span class="status-badge {{ row.performance|lower|replace(' ', '-') }}">{{ row.performance }}</span></td><td>{{ row.created_at }}</td></tr>
+  {% endfor %}
+  </tbody></table></div>
+  {% else %}
+  <div class="empty-state"><span>◷</span><b>History is empty</b><p>Predictions you run from the dashboard will appear here.</p><a class="primary-btn inline-btn" href="{{ url_for('index') }}">Make a prediction →</a></div>
+  {% endif %}
+</section>
+{% endblock %}

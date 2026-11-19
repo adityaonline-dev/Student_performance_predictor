@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}About the Model · Student Performance Lab{% endblock %}
+{% block breadcrumb %}About the model{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">PROJECT NOTES</div><h1>Inside the machine learning model</h1><p>A straightforward regression workflow you can explain in your semester viva.</p></div></div>
+<div class="about-grid">
+  <section class="panel about-main"><div class="eyebrow">MODEL OVERVIEW</div><h2>Random Forest Regression</h2><p>Random Forest trains a collection of decision trees on varied samples of the training data, then averages their predictions. It can learn non-linear patterns and does not require features to be standardized for this project.</p>
+    <div class="pipeline"><div><span>1</span><b>CSV dataset</b><small>1200 demo records</small></div><i>→</i><div><span>2</span><b>Train/test split</b><small>80% / 20%</small></div><i>→</i><div><span>3</span><b>Train forest</b><small>180 trees</small></div><i>→</i><div><span>4</span><b>Predict score</b><small>0 to 100</small></div></div>
+    <h3>Input features</h3><div class="feature-list">
+      <div><span>01</span><b>Daily study hours</b><small>Estimated hours spent studying each day</small></div>
+      <div><span>02</span><b>Attendance</b><small>Percentage of classes attended</small></div>
+      <div><span>03</span><b>Previous score</b><small>Most recent exam score out of 100</small></div>
+      <div><span>04</span><b>Assignment average</b><small>Average assignment score out of 100</small></div>
+      <div><span>05</span><b>Sleep hours</b><small>Average nightly sleep</small></div>
+      <div><span>06</span><b>Extracurricular hours</b><small>Estimated daily hours</small></div>
+    </div>
+  </section>
+  <section class="panel metrics-panel"><div class="eyebrow">MODEL EVALUATION</div><h2>Test-set metrics</h2><p>Calculated on held-out synthetic records.</p>
+    <div class="metric-row"><span>Mean Absolute Error (MAE)</span><b>{{ metrics.mae }}</b></div>
+    <div class="metric-row"><span>Root Mean Squared Error</span><b>{{ metrics.rmse }}</b></div>
+    <div class="metric-row"><span>R² score</span><b>{{ metrics.r2 }}</b></div>
+    <div class="metric-row"><span>Training records</span><b>{{ metrics.train_rows }}</b></div>
+    <div class="metric-row"><span>Test records</span><b>{{ metrics.test_rows }}</b></div>
+    <div class="metric-row"><span>Algorithm</span><b class="algorithm-name">Random Forest</b></div>
+    <div class="metric-explainer"><b>How to read these</b><p>MAE and RMSE are score-error measures, so lower values are generally better. R² compares the model with a simple mean-baseline predictor; it can be negative if performance is poor.</p></div>
+  </section>
+</div>
+<div class="demo-warning"><span>ⓘ</span><div><b>Important limitation</b><p>The supplied data is synthetic and based on an illustrative formula. The displayed metrics only show that the code runs; they do not demonstrate reliable prediction for real students. Use a documented dataset and validate carefully before drawing conclusions.</p></div></div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Student Performance Lab{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><div class="eyebrow">OVERVIEW</div><h1>Student performance dashboard</h1>
+    <p>Estimate a student's potential final score using academic and lifestyle indicators.</p></div>
+  <div class="date-pill"><span class="date-icon">▦</span> ML Prediction Workspace</div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-top"><span>Total predictions</span><span class="stat-icon purple">↗</span></div><div class="stat-value">{{ totals.total or 0 }}</div><div class="stat-foot">Saved in local history</div></div>
+  <div class="stat-card"><div class="stat-top"><span>Average predicted score</span><span class="stat-icon blue">◉</span></div><div class="stat-value">{% if totals.average is not none %}{{ totals.average }}<small>/100</small>{% else %}—{% endif %}</div><div class="stat-foot">Across all predictions</div></div>
+  <div class="stat-card"><div class="stat-top"><span>At-risk predictions</span><span class="stat-icon orange">!</span></div><div class="stat-value">{{ totals.at_risk or 0 }}</div><div class="stat-foot">Estimated score below 40</div></div>
+  <div class="stat-card"><div class="stat-top"><span>Input features</span><span class="stat-icon green">⌘</span></div><div class="stat-value">06</div><div class="stat-foot">Academic + routine indicators</div></div>
+</div>
+
+<div class="content-grid">
+  <section class="panel predictor-panel">
+    <div class="panel-heading">
+      <div><div class="eyebrow">NEW ANALYSIS</div><h2>Predict student score</h2><p>Enter the student's information below.</p></div>
+      <span class="panel-symbol">✳</span>
+    </div>
+    <form method="POST" id="prediction-form">
+      <div class="form-group full">
+        <label for="student_name">Student name <span class="optional">Optional</span></label>
+        <input id="student_name" name="student_name" type="text" maxlength="80" placeholder="e.g. Student 01" value="{{ form_values.get('student_name', '') }}">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="study_hours">Daily study hours</label>
+          <div class="input-wrap"><input id="study_hours" name="study_hours" type="number" min="0" max="16" step="0.1" required placeholder="5.0" value="{{ form_values.get('study_hours', '') }}"><span>hrs</span></div>
+          <small>0–16 hours per day</small>
+        </div>
+        <div class="form-group">
+          <label for="attendance">Attendance</label>
+          <div class="input-wrap"><input id="attendance" name="attendance" type="number" min="0" max="100" step="0.1" required placeholder="85" value="{{ form_values.get('attendance', '') }}"><span>%</span></div>
+          <small>0–100 percent</small>
+        </div>
+        <div class="form-group">
+          <label for="previous_score">Previous exam score</label>
+          <div class="input-wrap"><input id="previous_score" name="previous_score" type="number" min="0" max="100" step="0.1" required placeholder="72" value="{{ form_values.get('previous_score', '') }}"><span>/100</span></div>
+          <small>Most recent exam result</small>
+        </div>
+        <div class="form-group">
+          <label for="assignment_score">Assignment average</label>
+          <div class="input-wrap"><input id="assignment_score" name="assignment_score" type="number" min="0" max="100" step="0.1" required placeholder="80" value="{{ form_values.get('assignment_score', '') }}"><span>/100</span></div>
+          <small>Average assignment score</small>
+        </div>
+        <div class="form-group">
+          <label for="sleep_hours">Sleep per night</label>
+          <div class="input-wrap"><input id="sleep_hours" name="sleep_hours" type="number" min="0" max="24" step="0.1" required placeholder="7.5" value="{{ form_values.get('sleep_hours', '') }}"><span>hrs</span></div>
+          <small>0–24 hours per night</small>
+        </div>
+        <div class="form-group">
+          <label for="extracurricular_hours">Extracurricular hours</label>
+          <div class="input-wrap"><input id="extracurricular_hours" name="extracurricular_hours" type="number" min="0" max="12" step="0.1" required placeholder="2" value="{{ form_values.get('extracurricular_hours', '') }}"><span>hrs</span></div>
+          <small>Daily average, 0–12 hours</small>
+        </div>
+      </div>
+      <div class="form-actions"><span class="privacy-note">▣ Inputs are processed locally.</span><button class="primary-btn" type="submit">Run prediction <span>→</span></button></div>
+    </form>
+  </section>
+
+  <section class="right-column">
+    {% if result %}
+    <div class="panel result-panel">
+      <div class="result-head"><div><div class="eyebrow">LATEST RESULT · #{{ result.id }}</div><h2>Prediction complete</h2></div><span class="result-check">✓</span></div>
+      <div class="score-ring" style="--score: {{ result.score * 3.6 }}deg"><div><strong>{{ result.score }}</strong><small>out of 100</small></div></div>
+      <div class="result-label">{{ result.performance }}</div>
+      <p class="result-message">{{ result.message }}</p>
+      <div class="result-note">This is a model estimate, not a guaranteed result.</div>
+    </div>
+    {% else %}
+    <div class="panel insight-panel">
+      <div class="insight-art"><span class="art-orbit orbit-one"></span><span class="art-orbit orbit-two"></span><span class="art-star">✦</span><span class="art-core">ML</span></div>
+      <div class="eyebrow">HOW IT WORKS</div><h2>Turn inputs into insight</h2>
+      <p>The trained model looks for patterns across study time, attendance, past scores, assignments, sleep, and extracurricular activities.</p>
+      <div class="steps"><div><span>01</span><p><b>Enter details</b><small>Use realistic values</small></p></div><div><span>02</span><p><b>Run the model</b><small>Random Forest regression</small></p></div><div><span>03</span><p><b>Review estimate</b><small>Score and performance band</small></p></div></div>
+    </div>
+    {% endif %}
+    <div class="panel chart-panel"><div class="panel-heading compact"><div><h2>Performance distribution</h2><p>Saved predictions by category</p></div><span class="chart-dots">•••</span></div>
+      <div class="chart-wrap"><canvas id="distributionChart"></canvas></div>
+      <div class="chart-legend"><span><i class="dot dot-purple"></i>Excellent</span><span><i class="dot dot-blue"></i>Good</span><span><i class="dot dot-orange"></i>Needs improvement</span><span><i class="dot dot-red"></i>At risk</span></div>
+    </div>
+  </section>
+</div>
+
+<section class="panel table-panel">
+  <div class="panel-heading"><div><div class="eyebrow">RECENT ACTIVITY</div><h2>Recent predictions</h2><p>Your latest score estimates are listed here.</p></div><a class="text-link" href="{{ url_for('history') }}">View full history <span>→</span></a></div>
+  {% if recent %}
+  <div class="table-scroll"><table><thead><tr><th>STUDENT</th><th>STUDY HRS</th><th>ATTENDANCE</th><th>PREDICTED SCORE</th><th>PERFORMANCE</th><th>DATE</th></tr></thead><tbody>
+    {% for row in recent %}
+    <tr><td><div class="student-cell"><span class="student-avatar">{{ row.student_name[:1]|upper }}</span><b>{{ row.student_name }}</b></div></td><td>{{ row.study_hours }}</td><td>{{ row.attendance }}%</td><td><b>{{ row.predicted_score }}/100</b></td><td><span class="status-badge {{ row.performance|lower|replace(' ', '-') }}">{{ row.performance }}</span></td><td>{{ row.created_at }}</td></tr>
+    {% endfor %}
+  </tbody></table></div>
+  {% else %}
+  <div class="empty-state"><span>◷</span><b>No predictions yet</b><p>Complete the form above to see your first result here.</p></div>
+  {% endif %}
+</section>
+<div class="demo-warning"><span>ⓘ</span><div><b>Academic demo notice</b><p>This project uses synthetic sample data for demonstration. Predictions are estimates and should not be used to make important decisions about real students.</p></div></div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const values = {{ [
+    distribution.get('Excellent', 0),
+    distribution.get('Good', 0),
+    distribution.get('Needs Improvement', 0),
+    distribution.get('At Risk', 0)
+  ]|tojson }};
+  const canvas = document.getElementById("distributionChart");
+  if (canvas && window.Chart) {
+    new Chart(canvas, {
+      type: "doughnut",
+      data: { labels: ["Excellent", "Good", "Needs Improvement", "At Risk"],
+        datasets: [{ data: values, backgroundColor: ["#7667e8", "#4c9be8", "#f3a64a", "#e56b76"], borderWidth: 0, hoverOffset: 5 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: "72%",
+        plugins: { legend: { display: false }, tooltip: { padding: 10 } } }
+    });
+  }
+});
+</script>
+{% endblock %}
